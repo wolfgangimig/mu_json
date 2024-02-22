@@ -38,7 +38,7 @@ Nicolas Seriot for creating the comprehensive
 
 ## A simple example:
 
-```
+```c
 #include "mu_json.h"
 #include "mu_str.h"
 #include <stdio.h>
