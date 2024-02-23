@@ -58,12 +58,12 @@ void print_token_slice(mu_json_token_t *t) {
 
 int main() {
     mu_json_token_t tokens[N_DEMO_TOKENS];
-    const char *json = " {\"a\":111, \"b\":[222, true], \"c\":{}}  ";
+    const char *json = " {\"a\":111, \"b\":[22.2, true], \"c\":{}}  ";
 
     int n_tokens = mu_json_parse_c_str(tokens, N_DEMO_TOKENS, json, NULL);
     for (int i = 0; i < n_tokens; i++) {
         mu_json_token_t *t = &tokens[i];
-        printf("token[%d]: %6s depth=%d, ", i, token_type_string(t),
+        printf("token[%d]: %7s depth=%d, ", i, token_type_string(t),
                mu_json_token_depth(t));
         print_token_slice(t);
     }

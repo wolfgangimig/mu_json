@@ -67,12 +67,12 @@ void print_token_slice(mu_json_token_t *t) {
 
 int main() {
     mu_json_token_t tokens[N_DEMO_TOKENS];
-    const char *json = " {\"a\":111, \"b\":[222, true], \"c\":{}}  ";
+    const char *json = " {\"a\":111, \"b\":[22.2, true], \"c\":{}}  ";
 
     int n_tokens = mu_json_parse_c_str(tokens, N_DEMO_TOKENS, json, NULL);
     for (int i = 0; i < n_tokens; i++) {
         mu_json_token_t *t = &tokens[i];
-        printf("token[%d]: %6s depth=%d, ", i, token_type_string(t),
+        printf("token[%d]: %7s depth=%d, ", i, token_type_string(t),
                mu_json_token_depth(t));
         print_token_slice(t);
     }
@@ -80,13 +80,13 @@ int main() {
 ```
 Compiling and running the above results in:
 ```
-token[0]: OBJECT depth=0, '{"a":111, "b":[222, true], "c":{}}'
-token[1]: STRING depth=1, '"a"'
-token[2]: NUMBER depth=1, '111'
-token[3]: STRING depth=1, '"b"'
-token[4]:  ARRAY depth=1, '[222, true]'
-token[5]: NUMBER depth=2, '222'
-token[6]:   TRUE depth=2, 'true'
-token[7]: STRING depth=1, '"c"'
-token[8]: OBJECT depth=1, '{}'
+token[0]:  OBJECT depth=0, '{"a":111, "b":[22.2, true], "c":{}}'
+token[1]:  STRING depth=1, '"a"'
+token[2]: INTEGER depth=1, '111'
+token[3]:  STRING depth=1, '"b"'
+token[4]:   ARRAY depth=1, '[22.2, true]'
+token[5]:  NUMBER depth=2, '22.2'
+token[6]:    TRUE depth=2, 'true'
+token[7]:  STRING depth=1, '"c"'
+token[8]:  OBJECT depth=1, '{}'
 ```

@@ -59,7 +59,7 @@ char *tts(mu_json_token_t *t, char *buf, size_t buflen) {
         snprintf(buf, buflen, "<null token>");
     } else {
         mu_str_t *s = mu_json_token_slice(t);
-        snprintf(buf, buflen, "<token: %6s depth=%d value='%.*s'>",
+        snprintf(buf, buflen, "<token: %7s depth=%d value='%.*s'>",
                  token_type_string(t), mu_json_token_depth(t),
                  (int)mu_str_length(s), mu_str_buf(s));
     }

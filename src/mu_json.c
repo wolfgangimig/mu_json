@@ -136,10 +136,12 @@ typedef enum { DEFINE_CHAR_CLASSES(EXPAND_CH_CLASS_ENUMS) } ch_class_t;
     M(Bz, "begin zero")                                                        \
     M(Fa, "finish array")                                                      \
     M(Fo, "finish object")                                                     \
+    M(Pd, "process decimal point")                                             \
     M(Pl, "process colon")                                                     \
     M(Pm, "process comma")                                                     \
     M(Ps, "process trailing space")                                            \
-    M(Pq, "process close quote")
+    M(Pq, "process close quote")                                               \
+    M(Px, "process exponent")
 
 #define EXPAND_STATE_ENUMS(_name, _description) _name,
 enum { DEFINE_STATES(EXPAND_STATE_ENUMS) };
@@ -211,13 +213,13 @@ static int state_transition_table[NR_STATES * NR_CLASSES] = {
 /*u3     U3*/ __,__,__,__,__,__,__,__,__,__,__,__,__,__,U4,U4,U4,U4,U4,U4,U4,U4,__,__,__,__,__,__,U4,U4,__,
 /*u4     U4*/ __,__,__,__,__,__,__,__,__,__,__,__,__,__,ST,ST,ST,ST,ST,ST,ST,ST,__,__,__,__,__,__,ST,ST,__,
 /*minus  MI*/ __,__,__,__,__,__,__,__,__,__,__,__,__,__,ZE,IN,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,
-/*zero   ZE*/ OK,OK,__,Fo,__,Fa,__,Pm,__,__,__,__,__,FR,__,__,__,__,__,__,E1,__,__,__,__,__,__,__,__,E1,__,
-/*int    IN*/ Ps,Ps,__,Fo,__,Fa,__,Pm,__,__,__,__,__,FR,IN,IN,__,__,__,__,E1,__,__,__,__,__,__,__,__,E1,__,
+/*zero   ZE*/ Ps,OK,__,Fo,__,Fa,__,Pm,__,__,__,__,__,Pd,__,__,__,__,__,__,Px,__,__,__,__,__,__,__,__,Px,__,
+/*int    IN*/ Ps,Ps,__,Fo,__,Fa,__,Pm,__,__,__,__,__,Pd,IN,IN,__,__,__,__,Px,__,__,__,__,__,__,__,__,Px,__,
 /*frac   FR*/ __,__,__,__,__,__,__,__,__,__,__,__,__,__,FS,FS,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,
-/*fracs  FS*/ OK,OK,__,Fo,__,Fa,__,Pm,__,__,__,__,__,__,FS,FS,__,__,__,__,E1,__,__,__,__,__,__,__,__,E1,__,
+/*fracs  FS*/ Ps,OK,__,Fo,__,Fa,__,Pm,__,__,__,__,__,__,FS,FS,__,__,__,__,Px,__,__,__,__,__,__,__,__,Px,__,
 /*e      E1*/ __,__,__,__,__,__,__,__,__,__,__,E2,E2,__,E3,E3,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,
 /*ex     E2*/ __,__,__,__,__,__,__,__,__,__,__,__,__,__,E3,E3,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,
-/*exp    E3*/ OK,OK,__,Fo,__,Fa,__,Pm,__,__,__,__,__,__,E3,E3,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,
+/*exp    E3*/ Ps,OK,__,Fo,__,Fa,__,Pm,__,__,__,__,__,__,E3,E3,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,
 /*tr     T1*/ __,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,T2,__,__,__,__,__,__,
 /*tru    T2*/ __,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,T3,__,__,__,
 /*true   T3*/ __,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,OK,__,__,__,__,__,__,__,__,__,__,
@@ -669,7 +671,7 @@ static int parse(mu_json_token_t *token_store, size_t max_tokens,
 
             case Bd: {
                 // Begin digit 1..9
-                std_alloc(&parser, MU_JSON_TOKEN_TYPE_NUMBER, IN);
+                std_alloc(&parser, MU_JSON_TOKEN_TYPE_INTEGER, IN);
                 break;
             }
 
@@ -681,7 +683,7 @@ static int parse(mu_json_token_t *token_store, size_t max_tokens,
 
             case Bm: {
                 // Begin minus
-                std_alloc(&parser, MU_JSON_TOKEN_TYPE_NUMBER, MI);
+                std_alloc(&parser, MU_JSON_TOKEN_TYPE_INTEGER, MI);
                 break;
             }
 
@@ -712,7 +714,7 @@ static int parse(mu_json_token_t *token_store, size_t max_tokens,
 
             case Bz: {
                 // Begin zero
-                std_alloc(&parser, MU_JSON_TOKEN_TYPE_NUMBER, ZE);
+                std_alloc(&parser, MU_JSON_TOKEN_TYPE_INTEGER, ZE);
                 break;
             }
 
@@ -761,6 +763,14 @@ static int parse(mu_json_token_t *token_store, size_t max_tokens,
                 break;
             }
 
+            case Pd: {
+                // Process decimal point: convert INTEGER to NUMBER
+                mu_json_token_t *token = tos(&parser);
+                token->type = MU_JSON_TOKEN_TYPE_NUMBER;
+                set_state(&parser, FR);
+                break;
+            }
+
             case Pl: {
                 // Process colon
                 mu_json_token_t *token = tos(&parser);
@@ -793,6 +803,14 @@ static int parse(mu_json_token_t *token_store, size_t max_tokens,
                 mu_json_token_t *token = tos(&parser);
                 finish_token(&parser, token, true);
                 set_state(&parser, select_state(token, OK, OK, OK, CO));
+                break;
+            }
+
+            case Px: {
+                // Process exponent: convert INTEGER to NUMBER
+                mu_json_token_t *token = tos(&parser);
+                token->type = MU_JSON_TOKEN_TYPE_NUMBER;
+                set_state(&parser, E1);
                 break;
             }
 
