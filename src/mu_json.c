@@ -38,7 +38,7 @@
 // *****************************************************************************
 // Private types and definitions
 
-#define DEBUG_TRACE
+// #define DEBUG_TRACE
 #ifdef DEBUG_TRACE
 #include <stdio.h>
 #define TRACE_PRINTF(...) fprintf(stderr, __VA_ARGS__)
@@ -155,7 +155,7 @@ typedef struct {
     int char_pos;            // position of char being parsed
     int state;               // parser state
     mu_json_err_t error;     // error status
-    mu_json_token_t *current_token; // currently parsed token
+    mu_json_token_t *current_token; // wi: currently parsed token
 } parser_t;
 
 // *****************************************************************************
